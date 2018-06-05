@@ -170,7 +170,7 @@ class CodeWriter:
 				# D = constant value
 				self.outputfile.write("@" + str(index) + "\n")
 				self.outputfile.write("D=A\n")
-			elif segment in ["local", "argument", "this", "that", "temp"]:
+			elif segment in ["local", "argument", "this", "that"]:
 				# D = *(@Segment + index)
 				self.outputfile.write("@" + str(index) + "\n")
 				self.outputfile.write("D=A\n")
@@ -182,9 +182,11 @@ class CodeWriter:
 					self.outputfile.write("@THIS\n")
 				elif segment == "that":
 					self.outputfile.write("@THAT\n")
-				elif segment == "temp":
-					self.outputfile.write("@5\n")
 				self.outputfile.write("A=D+M\n")
+				self.outputfile.write("D=M\n")
+			elif segment == "temp":
+				# D = temp index
+				self.outputfile.write("@" + str(5+index) + "\n")
 				self.outputfile.write("D=M\n")
 			elif segment == "static":
 				# D = static variable
@@ -215,7 +217,7 @@ class CodeWriter:
 			self.outputfile.write("@tmp\n")
 			self.outputfile.write("M=D\n")
 
-			if segment in ["local", "argument", "this", "that", "temp"]:
+			if segment in ["local", "argument", "this", "that"]:
 				# addr = @Segment + index
 				self.outputfile.write("@" + str(index) + "\n")
 				self.outputfile.write("D=A\n")
@@ -227,8 +229,6 @@ class CodeWriter:
 					self.outputfile.write("@THIS\n")
 				elif segment == "that":
 					self.outputfile.write("@THAT\n")
-				elif segment == "temp":
-					self.outputfile.write("@5\n")
 				self.outputfile.write("D=D+M\n")
 				self.outputfile.write("@addr\n")
 				self.outputfile.write("M=D\n")
@@ -241,7 +241,13 @@ class CodeWriter:
 				self.outputfile.write("@addr\n")
 				self.outputfile.write("A=M\n")
 				self.outputfile.write("M=D\n")
-
+			elif segment == "temp":
+				# D = tmp
+				self.outputfile.write("@tmp\n")
+				self.outputfile.write("D=M\n")
+				# M[temp + index] = D
+				self.outputfile.write("@" + str(5+index) + "\n")
+				self.outputfile.write("M=D\n")
 			elif segment == "static":
 				# static variable = D
 				self.outputfile.write("@" + self.prefixLabel + "." + str(index) + "\n")
