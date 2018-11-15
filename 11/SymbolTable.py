@@ -26,7 +26,12 @@ class SymbolTable:
     return self.table[name][0]
 
   def indexOf(self, name):
+    if name not in self.table:
+      return -1
     return self.table[name][2]
+
+  def numberOfKind(self, kind):
+    return self.kindCounter[kind]
 
 class TestSymbolTable(unittest.TestCase):
   def setUp(self):
