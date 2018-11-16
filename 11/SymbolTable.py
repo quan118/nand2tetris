@@ -23,6 +23,8 @@ class SymbolTable:
     return self.table[name][1]
   
   def typeOf(self, name):
+    if name not in self.table:
+      return None
     return self.table[name][0]
 
   def indexOf(self, name):

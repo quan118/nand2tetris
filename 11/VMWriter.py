@@ -4,7 +4,7 @@ import StringIO
 import os
 
 class Segment:
-  CONST = 'const'
+  CONST = 'constant'
   ARG = 'argument'
   LOCAL = 'local'
   STATIC = 'static'
