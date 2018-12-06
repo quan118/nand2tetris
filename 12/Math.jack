@@ -1,0 +1,150 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
+
+    static Array powerOf2;
+
+    /** Initializes the library. */
+    function void init() {
+        let powerOf2 = Array.new(15);
+        let powerOf2[0] = 1;
+        let powerOf2[1] = 2;
+        let powerOf2[2] = 4;
+        let powerOf2[3] = 8;
+        let powerOf2[4] = 16;
+        let powerOf2[5] = 32;
+        let powerOf2[6] = 64;
+        let powerOf2[7] = 128;
+        let powerOf2[8] = 256;
+        let powerOf2[9] = 512;
+        let powerOf2[10] = 1024;
+        let powerOf2[11] = 2048;
+        let powerOf2[12] = 4096;
+        let powerOf2[13] = 8192;
+        let powerOf2[14] = 16384;
+        let powerOf2[15] = ~32767;
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x < 0) { return -x;}
+        return x;
+    }
+
+    function int numberOfBits(int x) {
+        if ((x=0)|(x=1)) {return 1;}
+        if ((x>1)&(x<4)) {return 2;}
+        if ((x>3)&(x<8)) {return 3;}
+        if ((x>7)&(x<16)) {return 4;}
+        if ((x>15)&(x<32)) {return 5;}
+        if ((x>31)&(x<64)) {return 6;}
+        if ((x>63)&(x<128)) {return 7;}
+        if ((x>127)&(x<256)) {return 8;}
+        if ((x>255)&(x<512)) {return 9;}
+        if ((x>511)&(x<1024)) {return 10;}
+        if ((x>1023)&(x<2048)) {return 11;}
+        if ((x>2047)&(x<4096)) {return 12;}
+        if ((x>4095)&(x<8192)) {return 13;}
+        if ((x>8191)&(x<16384)) {return 14;}
+        if (x>16383) {return 15;}
+        return 16;
+    }
+
+    function boolean bit(int x, int i) {
+        if (x&powerOf2[i]=0) {return false;}
+        return true;
+    }
+
+    /** Returns the product of x and y. 
+     *  When a Jack compiler detects the multiplication operator '*' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int sum, shiftedX, nbit, i;
+        let sum = 0;
+        let shiftedX = x;
+        let nbit = Math.numberOfBits(y);
+        let i = 0;
+
+        while (i < nbit) {
+            if (Math.bit(y,i)=true) {
+                let sum = sum + shiftedX;
+            }
+            let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
+        }
+
+        return sum;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        var int q, x1, y1, result;
+        let x1 = Math.abs(x);
+        let y1 = Math.abs(y);
+        if (y1 > x1) { return 0; }
+        let q = Math.divide(x1, y1 + y1);
+        if ((x1 - ((q * y1) + (q * y1))) < y1) { let result = q + q; }
+        else { let result = q + q + 1; }
+        if ((x < 0 & y > 0)|(x > 0 & y < 0)) {let result = -result;}
+        return result;
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int n, tmp, j, y, ty, head, tail, mid;
+        let n = 0;
+        // find n
+        if ((x=0)|(x=1)) {let n=1;}
+        if ((x>1)&(x<4)) {let n=2;}
+        if ((x>3)&(x<8)) {let n=3;}
+        if ((x>7)&(x<16)) {let n=4;}
+        if ((x>15)&(x<32)) {let n=5;}
+        if ((x>31)&(x<64)) {let n=6;}
+        if ((x>63)&(x<128)) {let n=7;}
+        if ((x>127)&(x<256)) {let n=8;}
+        if ((x>255)&(x<512)) {let n=9;}
+        if ((x>511)&(x<1024)) {let n=10;}
+        if ((x>1023)&(x<2048)) {let n=11;}
+        if ((x>2047)&(x<4096)) {let n=12;}
+        if ((x>4095)&(x<8192)) {let n=13;}
+        if ((x>8191)&(x<16384)) {let n=14;}
+        if (x>16383) {let n=15;}
+
+        let y = 0;
+        let j = n / 2;
+
+        while (~(j < 0)) {
+            let ty = y + powerOf2[j];
+            let tmp = ty * ty;
+            if ((~(tmp > x))&(~(tmp<0))) {let y = ty;}
+            let j = j - 1;
+        }
+        return y;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if (a < b) {return b;}
+        return a;
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if (a > b) {return b;}
+        return a;
+    }
+}

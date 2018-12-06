@@ -1,0 +1,77 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
+class Memory {
+    static Array ram;
+    static Array heap;
+    static int freeList, heapBase;
+    /** Initializes the class. */
+    function void init() {
+        let ram = 0;
+        let heapBase = 2048;
+        let heap = heapBase;
+        let freeList = heap;
+        let heap[0] = 0; // next
+        let heap[1] = 14334; // length
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let ram[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+        var int next, length;
+        var bool continue;
+        let next = 0;
+        let length = heap[1];
+        let continue = true;
+        while (continue = true) {
+            if (heap[next+1] > size + 2) {
+                let heap[next+1] = length - size - 2; // change length
+                let heap[next+length-size] = 0;
+                let heap[next+length-size+1] = size;
+                return heap + next + length - size + 2;
+            } else {
+                let next = heap[next];
+                if (next = 0) {
+                    let continue = false;
+                } else {
+                    let length = heap[next+1];
+                }
+            }
+        }
+        return -1;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+        var int next, last;
+        var bool continue;
+        let last = 0;
+        while (~(next=0)) {
+            let next = heap[next];
+            let last = next;
+        }
+        let heap[last] = o - heapBase - 2;
+        let heap[last+1] = heap[last+1] + heap[o - heapBase - 1];
+        return;
+    }    
+}
