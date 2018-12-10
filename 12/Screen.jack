@@ -10,15 +10,14 @@
  * the screen is indexed (0,0).
  */
 class Screen {
-
+    static Array screen;
     static boolean currentColor;
-    static Array bits;
     static Array mask0;
     static Array mask1;
     /** Initializes the Screen. */
     function void init() {
         let currentColor = true;
-        let bits = Array.new(16);
+        let screen = 16384;
         let mask0 = Array.new(16);
         
         let mask0[15] = 32767; // 0x7FFF
@@ -60,11 +59,11 @@ class Screen {
 
     /** Erases the entire screen. */
     function void clearScreen() {
-        var int address;
-        let address = 16384;
-        while (address < 24576) {
-            do Memory.poke(address, 0);
-            let address = address + 1;
+        var int i;
+        let i = 0;
+        while (i < 8192) {
+            let screen[i] = 0;
+            let i = i + 1;
         }
         return;
     }
@@ -80,8 +79,8 @@ class Screen {
     function void drawPixel(int x, int y) {
         var int address, value, counter, ith, x_div_16;
         let x_div_16 = x / 16;
-        let address = (32 * y) + x_div_16 + 16384; // (512*y + x)/16
-        let value = Memory.peek(address);
+        let address = (32 * y) + x_div_16; // (512*y + x)/16
+        let value = screen[address];
         let ith = x - (x_div_16*16);
 
         if (~currentColor) {
@@ -89,8 +88,7 @@ class Screen {
         } else {
             let value = value | mask1[ith];
         }
-
-        do Memory.poke(address,value);
+        let screen[address] = value;
         return;
     }
 
@@ -132,8 +130,8 @@ class Screen {
                 let ty = 32*y1;
                 let tx = x3/16;
                 while (x1<x4) {
-                    let addr = ty + tx + 16384;
-                    do Memory.poke(addr, color);
+                    let addr = ty + tx;
+                    let screen[addr] = color;
                     let x1 = x1 + 16;
                     let tx = tx + 1;
                 }
