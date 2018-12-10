@@ -78,10 +78,11 @@ class Screen {
 
     /** Draws the (x,y) pixel, using the current color. */
     function void drawPixel(int x, int y) {
-        var int address, value, counter, ith;
-        let address = (32 * y) + (x / 16) + 16384; // (512*y + x)/16
+        var int address, value, counter, ith, x_div_16;
+        let x_div_16 = x / 16;
+        let address = (32 * y) + x_div_16 + 16384; // (512*y + x)/16
         let value = Memory.peek(address);
-        let ith = x - (x/16*16);
+        let ith = x - (x_div_16*16);
 
         if (~currentColor) {
             let value = value & mask0[ith];
@@ -95,50 +96,93 @@ class Screen {
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2) {
-        var int a, b, diff, dx, dy, da, db;
+        var int a, b, diff, dx, dy, x3, x4, tmp, ty, tx, addr, color;
+        if (x1>x2) {
+            let tmp = x2;
+            let x2 = x1;
+            let x1 = tmp;
+            let tmp = y2;
+            let y2 = y1;
+            let y1 = tmp;
+        }
         let a = 0;
         let b = 0;
         let diff = 0;
         let dx = x2 - x1;
         let dy = y2 - y1;
-        if (dx > 0) {let da = 1;}
-        else {let da = -1;}
-        if (dy > 0) {let db = 1;}
-        else {let db = -1;}
+
 
         if (y2 = y1) {
-            while (~(Math.abs(a) > Math.abs(dx))) {
-                do Screen.drawPixel(x1 + a, y1);
-                let a = a + da;
+            if (currentColor) {
+                let color = ~0;
+            } else {
+                let color = 0;
+            }
+            let tmp = x1 - (x1/16*16);
+            let x3 = x1+16-tmp;
+            let tmp = x2 - (x2/16*16);
+            let x4 = x2 - tmp - 1;
+            if (x3 < x4) {
+                // draw from x1 to x3
+                while (x3>x1) {
+                    do Screen.drawPixel(x1, y1);
+                    let x1 = x1 + 1;
+                }
+                // draw from x3 to x4
+                let ty = 32*y1;
+                let tx = x3/16;
+                while (x1<x4) {
+                    let addr = ty + tx + 16384;
+                    do Memory.poke(addr, color);
+                    let x1 = x1 + 16;
+                    let tx = tx + 1;
+                }
+                // draw from x4 to x2
+                while (~(x1>x2)) {
+                    do Screen.drawPixel(x1, y1);
+                    let x1 = x1 + 1;
+                }
+            } else {
+                // draw from x1 to x2
+                while (~(a > dx)) {
+                    do Screen.drawPixel(x1 + a, y1);
+                    let a = a + 1;
+                }
             }
         } else {
             if (x2 = x1) {
-                while (~(Math.abs(b) > Math.abs(dy))) {
-                    do Screen.drawPixel(x1, y1 + b);
-                    let b = b + db;
+                if (dy > 0) {
+                    while (~(b>dy)) {
+                        do Screen.drawPixel(x1, y1 + b);
+                        let b = b + 1;
+                    }
+                } else {
+                    while (~(b<dy)) {
+                        do Screen.drawPixel(x1, y1 + b);
+                        let b = b - 1;
+                    }
                 }
             } else {
-                while (~(Math.abs(a) > Math.abs(dx)) & ~(Math.abs(b) > Math.abs(dy))) {
-                    do Screen.drawPixel(x1 + a, y1 + b);
-                    if (diff < 0) {
-                        if (((da>0)&(dy>0))|((da<0)&(dy<0))) {
-                            let a = a + da;
-                            if (dy>0) {let diff = diff + dy;}
-                            else {let diff = diff - dy;}
+                if ((dx>0)&(dy>0)) {
+                    while((~(a>dx))&(~(b>dy))) {
+                        do Screen.drawPixel(x1 + a, y1 + b);
+                        if (diff<0) {
+                            let a = a + 1;
+                            let diff = diff + dy;
                         } else {
-                            let b = b + db;
-                            if (dx>0) {let diff = diff + dx;}
-                            else {let diff = diff - dx;}
+                            let b = b + 1;
+                            let diff = diff - dx;
                         }
-                    } else {
-                        if (((db>0)&(dx>0))|((db<0)&(dx<0))) {
-                            let b = b + db;
-                            if (dx>0) {let diff = diff - dx;}
-                            else {let diff = diff + dx;}
+                    }
+                } else { // dx>0 & dy<0
+                    while((~(a>dx))&(~(dy>b))) {
+                        do Screen.drawPixel(x1 + a, y1 + b);
+                        if (diff<0) {
+                            let b = b - 1;
+                            let diff = diff + dx;
                         } else {
-                            let a = a + da;
-                            if (dy>0) {let diff = diff - dy;}
-                            else {let diff = diff + dy;}
+                            let a = a + 1;
+                            let diff = diff + dy;
                         }
                     }
                 }
